@@ -1,0 +1,56 @@
+# TASK 4 - one public Service (API Gateway) and internal Service discovery.
+# Only the API Gateway is exposed outside the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: cld-final
+  labels:
+    app: cld-final
+spec:
+  type: NodePort
+  selector:
+    app: cld-final
+    tier: gateway-registration
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+      nodePort: 30080
+---
+# Optional internal Service for the Registration container. The API Gateway
+# actually reaches registration through localhost because they share a Pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: registration-service
+  namespace: cld-final
+  labels:
+    app: cld-final
+spec:
+  type: ClusterIP
+  selector:
+    app: cld-final
+    tier: gateway-registration
+  ports:
+    - name: http
+      port: 5001
+      targetPort: 5001
+---
+# API Gateway resolves this ClusterIP name to reach the Delete Student Pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: delete-student-service
+  namespace: cld-final
+  labels:
+    app: cld-final
+spec:
+  type: ClusterIP
+  selector:
+    app: cld-final
+    tier: delete-student
+  ports:
+    - name: http
+      port: 5002
+      targetPort: 5002

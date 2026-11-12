@@ -1,0 +1,79 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: cld-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - cld-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  registration:
+    build: ./registration-service
+    container_name: cld-registration
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGODB_URI: mongodb://mongo:27017/CLD_Final
+      MONGODB_DB: CLD_Final
+    ports:
+      - "5001:5001"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  delete-student:
+    build: ./delete-student-service
+    container_name: cld-delete-student
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5002
+      MONGODB_URI: mongodb://mongo:27017/CLD_Final
+      MONGODB_DB: CLD_Final
+    ports:
+      - "5002:5002"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5002/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: cld-api-gateway
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      REGISTRATION_URL: http://registration:5001
+      DELETE_SERVICE_URL: http://delete-student:5002
+    ports:
+      - "4000:4000"
+    depends_on:
+      registration:
+        condition: service_healthy
+      delete-student:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  cld-mongo-data:

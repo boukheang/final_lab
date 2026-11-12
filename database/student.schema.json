@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/cld-final/student.schema.json",
+  "title": "Student",
+  "description": "CLD_Final.students document schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "Student_id",
+    "Student_name",
+    "student_mobile",
+    "student_email",
+    "student_password"
+  ],
+  "properties": {
+    "_id": {
+      "type": "string",
+      "description": "MongoDB ObjectId"
+    },
+    "Student_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{3,30}$",
+      "examples": ["STU-2026-001"]
+    },
+    "Student_name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 100,
+      "examples": ["Sokha Chan"]
+    },
+    "student_mobile": {
+      "type": "string",
+      "pattern": "^\\+?[0-9]{7,15}$",
+      "examples": ["+85512345678"]
+    },
+    "student_email": {
+      "type": "string",
+      "format": "email",
+      "examples": ["sokha.chan@example.com"]
+    },
+    "student_password": {
+      "type": "string",
+      "description": "bcrypt hash; never stored as plain text",
+      "minLength": 20
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
